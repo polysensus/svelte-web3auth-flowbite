@@ -16,6 +16,7 @@
   import { browser } from '$app/environment';
   import { Button } from 'flowbite-svelte';
   import { Web3Auth } from "@web3auth/modal";
+  import { TorusWalletAdapter } from "@web3auth/torus-evm-adapter";
   import { ethers } from "ethers";
 
   let web3authProvider=undefined;
@@ -25,6 +26,7 @@
   let user=undefined;
   let cfg = {};
   let web3auth;
+  let torusWalletAdapter;
 
   function _reset() {
     web3authProvider = undefined;
@@ -46,6 +48,33 @@
       web3AuthNetwork: cfg.web3auth.web3AuthNetwork,
       chainConfig: {...cfg.chainConfig},
     });
+
+    torusWalletAdapter = new TorusWalletAdapter({
+      adapterSettings: {
+        buttonPosition: "bottom-left",
+      },
+      loginSettings: {
+        verifier: "google",
+      },
+      initParams: {
+        buildEnv: "testing",
+      },
+      /*chainConfig: {
+        chainNamespace: CHAIN_NAMESPACES.EIP155,
+        chainId: "0x1",
+        rpcTarget: "https://rpc.ankr.com/eth",
+        // Avoid using public rpcTarget in production.
+        // Use services like Infura, Quicknode etc
+        displayName: "Ethereum Mainnet",
+        blockExplorer: "https://etherscan.io",
+        ticker: "ETH",
+        tickerName: "Ethereum",
+      },*/
+      clientId: cfg.web3auth.clientId,
+      sessionTime: 3600, // 1 hour in seconds
+      web3AuthNetwork: cfg.web3auth.web3AuthNetwork,
+    });
+
     await web3auth.initModal();
     web3authProvider = await web3auth.connect();
     if (!web3authProvider) { console.log("connect failed or canceled"); return;}
