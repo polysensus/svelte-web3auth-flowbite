@@ -16,6 +16,7 @@
   import { browser } from '$app/environment';
   import { Button } from 'flowbite-svelte';
   import { Web3Auth } from "@web3auth/modal";
+  import { TorusWalletConnectorPlugin } from "@web3auth/torus-wallet-connector-plugin";
   import { ethers } from "ethers";
 
   let web3authProvider=undefined;
@@ -25,6 +26,7 @@
   let user=undefined;
   let cfg = {};
   let web3auth;
+  let torusPlugin;
 
   function _reset() {
     web3authProvider = undefined;
@@ -46,9 +48,26 @@
       web3AuthNetwork: cfg.web3auth.web3AuthNetwork,
       chainConfig: {...cfg.chainConfig},
     });
+
+    torusPlugin = new TorusWalletConnectorPlugin({
+      torusWalletOpts: {},
+      walletInitOptions: {
+        whiteLabel: {
+          theme: { isDark: true, colors: { primary: "#00a8ff" } },
+          logoDark: "https://web3auth.io/images/w3a-L-Favicon-1.svg",
+          logoLight: "https://web3auth.io/images/w3a-D-Favicon-1.svg",
+          useWalletConnect: true,
+          enableLogging: true,
+        },
+      }
+    });
+    await web3auth.addPlugin(torusPlugin);
     await web3auth.initModal();
     web3authProvider = await web3auth.connect();
     if (!web3authProvider) { console.log("connect failed or canceled"); return;}
+
+    // torusPlugin.initWithProvider(web3authProvider, await web3auth.getUserInfo());
+
     provider = new ethers.providers.Web3Provider(web3authProvider);
     const signer = await provider.getSigner();
     address = await signer?.getAddress();
